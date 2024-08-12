@@ -120,4 +120,5 @@ This package was created using the following technologies:
 
 ---
 
-Created with ❤️ by [andresperezmelo](https://github.com/andresperezmelo)
+Created with ❤️ by [andresperezmelo](https://github.com/andresperezmelo) 😊
+[Andres Perez Melo](https://www.linkedin.com/in/andr%C3%A9s-p%C3%A9rez-melo-756413218/)
