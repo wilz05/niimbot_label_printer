@@ -78,6 +78,15 @@ final bool result = await NiimbotLabelPrinter.disconnect();
 | `rotate`       | `bool`     | Indicates whether the label should be rotated before printing.                |
 | `invertColor`  | `bool`     | Indicates whether the colors should be inverted before printing.              |
 
+
+---
+## Example
+
+Here is an example of how the label looks:
+
+![Example Label](https://github.com/andresperezmelo/niimbot_label_printer/raw/main/path_to_your_image.png)
+
+---
 ## Created With
 
 This package was created using the following technologies:
