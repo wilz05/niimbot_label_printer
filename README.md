@@ -105,9 +105,9 @@ Here is an example of how the label looks:
 
 ![Print label](https://github.com/andresperezmelo/niimbot_label_printer/blob/main/label.jpg)
 
-![Print label assets](https://github.com/andresperezmelo/niimbot_label_printer/blob/main/file1.png)
+![Print label assets](https://github.com/andresperezmelo/niimbot_label_printer/blob/main/file.png)
 
-![Create label](https://github.com/andresperezmelo/niimbot_label_printer/blob/main/file2.png)
+![Create label](https://github.com/andresperezmelo/niimbot_label_printer/blob/main/file_custom.png)
 
 ---
 ## Created With
