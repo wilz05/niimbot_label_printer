@@ -84,7 +84,7 @@ final bool result = await NiimbotLabelPrinter.disconnect();
 
 Here is an example of how the label looks:
 
-![Example Label](https://github.com/andresperezmelo/niimbot_label_printer/raw/main/path_to_your_image.png)
+![Print label](https://github.com/andresperezmelo/niimbot_label_printer/blob/main/label.jpg)
 
 ---
 ## Created With
