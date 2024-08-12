@@ -52,6 +52,15 @@ final bool result = await NiimbotLabelPrinter.send(printData);
 final bool result = await NiimbotLabelPrinter.disconnect();
 ```
 
+## QR Code Generation
+
+To generate QR codes, you should use the `qr_flutter` library. Add the following dependency to your `pubspec.yaml`:
+
+```yaml
+dependencies:
+  qr_flutter: ^4.1.0
+```
+
 ## API Reference
 
 ### Methods
@@ -78,13 +87,27 @@ final bool result = await NiimbotLabelPrinter.disconnect();
 | `rotate`       | `bool`     | Indicates whether the label should be rotated before printing.                |
 | `invertColor`  | `bool`     | Indicates whether the colors should be inverted before printing.              |
 
-
 ---
 ## Example
+
+In the example, you can print an image from the assets or create an image dynamically. 
+
+- To print an image from the assets, load the image using `AssetImage` and capture the widget.
+- To create an image, use widgets like `QrImage` to generate content dynamically and then capture the widget.
+
+Both methods allow you to generate the image you want to print and send it to the printer.
+
+
+---
+## Foto
 
 Here is an example of how the label looks:
 
 ![Print label](https://github.com/andresperezmelo/niimbot_label_printer/blob/main/label.jpg)
+
+![Print label assets](https://github.com/andresperezmelo/niimbot_label_printer/blob/main/file1.png)
+
+![Create label](https://github.com/andresperezmelo/niimbot_label_printer/blob/main/file2.png)
 
 ---
 ## Created With

@@ -397,12 +397,14 @@ class _MyAppState extends State<MyApp> {
                         Container(
                           padding: const EdgeInsets.all(5),
                           decoration: BoxDecoration(
-                            border: Border.all(color: Colors.black, width: 1),
+                            border: Border.all(color: Colors.grey, width: 1),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              Text("Size label to print", style: TextStyle(fontSize: 8)),
+                              Text("The image can be created with a specific size and rotated before printing.", style: TextStyle(fontSize: 8)),
                               Row(
                                 children: [
                                   SizedBox(
