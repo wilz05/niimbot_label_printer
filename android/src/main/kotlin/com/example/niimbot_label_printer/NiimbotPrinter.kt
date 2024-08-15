@@ -45,7 +45,7 @@ class NiimbotPrinter(private val context: Context, private val bluetoothSocket: 
         return packetData.array()
     }
 
-    suspend fun printBitmap(bitmap: Bitmap, density: Int = 3, quantity: Int = 1, rotate: Boolean = false, invertColor: Boolean = false) {
+    suspend fun printBitmap(bitmap: Bitmap, density: Int = 3, labelType: Int = 1, quantity: Int = 1, rotate: Boolean = false, invertColor: Boolean = false) {
         var bitmap = bitmap
         var width:Int = bitmap.width
         var height:Int = bitmap.height
@@ -66,7 +66,7 @@ class NiimbotPrinter(private val context: Context, private val bluetoothSocket: 
         //println("Setting label density...")
         setLabelDensity(density)
         //println("Setting label type...")
-        setLabelType(1)
+        setLabelType(labelType)
         //println("Starting print...")
         startPrint()
         //println("Starting page print...")

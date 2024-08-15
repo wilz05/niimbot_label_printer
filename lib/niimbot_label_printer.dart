@@ -115,6 +115,8 @@ class PrintData {
   late int height;
   late bool rotate;
   late bool invertColor;
+  late int density;
+  late int labelType;
 
   PrintData({
     required this.data,
@@ -122,6 +124,8 @@ class PrintData {
     required this.height,
     required this.rotate,
     required this.invertColor,
+    required this.density,
+    required this.labelType,
   });
 
   PrintData.fromMap(Map<String, dynamic> map) {
@@ -130,6 +134,8 @@ class PrintData {
     height = map['height'];
     rotate = map['rotate'];
     invertColor = map['invertColor'];
+    density = map['density'];
+    labelType = map['labelType'];
   }
 
   Map<String, dynamic> toMap() {
@@ -144,6 +150,8 @@ class PrintData {
       'height': height,
       'rotate': rotate,
       'invertColor': invertColor,
+      'density': density,
+      'labelType': labelType,
     };
   }
 }

@@ -5,7 +5,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:niimbot_label_printer/niimbot_label_printer.dart';
-import 'package:qr_flutter/qr_flutter.dart';
+import 'package:niimbot_label_printer_example/custom_canvas_widget.dart';
 
 void main() {
   runApp(const Apps());
@@ -36,6 +36,8 @@ class _MyAppState extends State<MyApp> {
   final TextEditingController txtpixelformm = TextEditingController(text: '8');
   bool rotate = false;
   bool invertColor = false;
+  int density = 3; //1 and 5
+  int labelType = 1; // 1 and 3
 
   String _msj = 'Unknown';
   final NiimbotLabelPrinter _niimbotLabelPrinterPlugin = NiimbotLabelPrinter();
@@ -45,7 +47,7 @@ class _MyAppState extends State<MyApp> {
 
   bool customImage = true;
   final globalKey = GlobalKey();
-  List<Widget> texts = [];
+  List<TextInfo> texts = [];
   ui.Image? _image;
   double _width = 400;
   double _height = 240;
@@ -146,7 +148,7 @@ class _MyAppState extends State<MyApp> {
                   ),
                   TextButton(
                     onPressed: () async {
-                      _image = await loadImage("assets/B1_400x240mm.png");
+                      _image = await loadImage("assets/2.png");
                       setState(() {});
                     },
                     child: const Text('Toggle image assets'),
@@ -154,70 +156,95 @@ class _MyAppState extends State<MyApp> {
                 ],
               ),
               _image != null
-                  ? Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.black, width: 1),
-                      ),
-                      child: RawImage(image: _image!, width: _width, height: _height),
+                  ? Column(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.black, width: 1),
+                          ),
+                          child: RawImage(image: _image!, width: _width, height: _height),
+                        ),
+                        Text("image. width: ${_image!.width}, height: ${_image!.height}"),
+                      ],
                     )
                   : const SizedBox(),
               Visibility(
                 visible: _image != null,
-                child: Row(
+                child: Column(
                   children: [
-                    SizedBox(
-                      width: 200,
-                      child: CheckboxListTile(
-                        value: rotate,
-                        controlAffinity: ListTileControlAffinity.leading,
-                        onChanged: (value) {
-                          setState(() {
-                            rotate = value!;
-                            setState(() {});
-                          });
-                        },
-                        title: const Text('Rotated'),
-                      ),
-                    ),
-                    ElevatedButton(
-                      onPressed: () async {
-                        final bool isConnected = await _niimbotLabelPrinterPlugin.isConnected();
-                        if (!isConnected) {
-                          setState(() {
-                            _msj = 'Not connected';
-                          });
-                          return;
-                        }
-
-                        ui.Image image = _image!;
-                        /* if (customImage) {
-                          image = await _widgetToImage();
-                        } else {
-                          image = await loadImage("assets/B1_400x240mm.png");
-                        }
-                        //if rotated
-                        if (rotate) {
-                          //image = await NiimbotLabelPrinter.rotateImage(image, 90);
-                          //rotated = false;
-                        }*/
-                        //final ui.Image image = await loadImage("assets/B1_400x240mm.png");
-                        ByteData? byteData = await image.toByteData();
-                        List<int> bytesImage = byteData!.buffer.asUint8List().toList();
-                        Map<String, dynamic> datosImagen = {
-                          "bytes": bytesImage,
-                          "width": image.width,
-                          "height": image.height,
-                          "rotate": rotate,
-                          "invertColor": invertColor,
-                        };
-                        PrintData printData = PrintData.fromMap(datosImagen);
-                        final bool result = await _niimbotLabelPrinterPlugin.send(printData);
+                    Slider(
+                      max: 3,
+                      min: 1,
+                      divisions: 2,
+                      label: "Label type: ${labelType.toInt()}",
+                      value: labelType.toDouble(),
+                      onChanged: (value) {
                         setState(() {
-                          _msj = result ? 'Printed' : 'Not printed';
+                          labelType = value.toInt();
                         });
                       },
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.green, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
-                      child: const Text('Print image', style: TextStyle(color: Colors.white)),
+                    ),
+                    Slider(
+                      max: 5,
+                      min: 1,
+                      divisions: 4,
+                      label: "Density: ${density.toInt()}",
+                      value: density.toDouble(),
+                      onChanged: (value) {
+                        setState(() {
+                          density = value.toInt();
+                        });
+                      },
+                    ),
+                    Row(
+                      children: [
+                        SizedBox(
+                          width: 200,
+                          child: CheckboxListTile(
+                            value: rotate,
+                            controlAffinity: ListTileControlAffinity.leading,
+                            onChanged: (value) {
+                              setState(() {
+                                rotate = value!;
+                                setState(() {});
+                              });
+                            },
+                            title: const Text('Rotated'),
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () async {
+                            final bool isConnected = await _niimbotLabelPrinterPlugin.isConnected();
+                            if (!isConnected) {
+                              setState(() {
+                                _msj = 'Not connected';
+                              });
+                              return;
+                            }
+
+                            ui.Image image = _image!;
+
+                            ByteData? byteData = await image.toByteData();
+                            List<int> bytesImage = byteData!.buffer.asUint8List().toList();
+                            Map<String, dynamic> datosImagen = {
+                              "bytes": bytesImage,
+                              "width": image.width,
+                              "height": image.height,
+                              "rotate": rotate,
+                              "invertColor": invertColor,
+                              "density": density,
+                              "labelType": labelType,
+                            };
+                            PrintData printData = PrintData.fromMap(datosImagen);
+                            final bool result = await _niimbotLabelPrinterPlugin.send(printData);
+                            setState(() {
+                              _msj = result ? 'Printed' : 'Not printed';
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.green, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                          child: const Text('Print image', style: TextStyle(color: Colors.white)),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -293,28 +320,11 @@ class _MyAppState extends State<MyApp> {
                             ),
                           ],
                         ),
-                        Center(
-                          child: RepaintBoundary(
-                            key: globalKey,
-                            child: Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(4),
-                                border: Border.all(color: Colors.black, width: 1),
-                              ),
-                              child: Column(
-                                children: [
-                                  for (Widget text in texts) text,
-                                  QrImageView(
-                                    data: "wwww.example.com",
-                                    version: QrVersions.auto,
-                                    size: 100,
-                                  )
-                                ],
-                              ),
-                            ),
-                          ),
+                        CustomQRWidget(
+                          textList: texts,
+                          qrData: "www.example.com",
+                          width: _width,
+                          height: _height,
                         ),
                         TextButton(
                           onPressed: () {
@@ -336,11 +346,14 @@ class _MyAppState extends State<MyApp> {
                             TextButton(
                               onPressed: () {
                                 setState(() {
-                                  texts.add(Text(
-                                    txttext.text,
-                                    style: TextStyle(fontSize: textSize, color: Colors.black, fontWeight: isBold ? FontWeight.w900 : FontWeight.normal),
-                                    textAlign: isCenter ? TextAlign.center : TextAlign.left,
-                                  ));
+                                  texts.add(
+                                    TextInfo(
+                                      text: txttext.text,
+                                      fontSize: textSize,
+                                      position: isCenter ? TextPosition.center : TextPosition.left,
+                                      isBold: isBold,
+                                    ),
+                                  );
                                   txttext.clear();
                                 });
                               },
@@ -403,8 +416,8 @@ class _MyAppState extends State<MyApp> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text("Size label to print", style: TextStyle(fontSize: 8)),
-                              Text("The image can be created with a specific size and rotated before printing.", style: TextStyle(fontSize: 8)),
+                              const Text("Size label to print", style: TextStyle(fontSize: 8)),
+                              const Text("The image can be created with a specific size and rotated before printing.", style: TextStyle(fontSize: 8)),
                               Row(
                                 children: [
                                   SizedBox(
@@ -433,7 +446,12 @@ class _MyAppState extends State<MyApp> {
                               ElevatedButton(
                                 onPressed: () async {
                                   updateSize();
-                                  _image = await _widgetToImage();
+                                  _image = await CustomQRWidget.getImage(
+                                    textList: texts,
+                                    qrData: "www.example.com",
+                                    width: _width,
+                                    height: _height,
+                                  );
                                   if (context.mounted) Navigator.pop(context);
                                 },
                                 style: ElevatedButton.styleFrom(backgroundColor: Colors.green, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
@@ -465,27 +483,6 @@ class _MyAppState extends State<MyApp> {
       _height = height * pixels.toDouble();
       setState(() {});
     }
-  }
-
-  Future<ui.Image> _widgetToImage() async {
-    // Obtén el RenderRepaintBoundary usando la globalKey
-    final RenderRepaintBoundary boundary = globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-
-    // Define el tamaño deseado
-    final double targetWidth = _width;
-    final double targetHeight = _height;
-
-    // Calcula la escala necesaria para obtener la imagen del tamaño deseado
-    //final double scaleX = targetWidth / boundary.size.width;
-    //final double scaleY = targetHeight / boundary.size.height;
-
-    // Toma la imagen con la escala calculada
-    //final ui.Image image = await boundary.toImage(pixelRatio: scaleX);
-    final ui.Image image = await boundary.toImage();
-
-    final ui.Image resizedImage = await resizeImage(image, targetWidth, targetHeight);
-
-    return resizedImage; // Retorna el objeto ui.Image
   }
 
   Future<ui.Image> resizeImage(ui.Image image, double targetWidth, double targetHeight) async {

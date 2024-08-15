@@ -86,6 +86,8 @@ dependencies:
 | `height`       | `int`      | The height of the label in pixels.                                            |
 | `rotate`       | `bool`     | Indicates whether the label should be rotated before printing.                |
 | `invertColor`  | `bool`     | Indicates whether the colors should be inverted before printing.              |
+| `density`      | `int`      | The density of the label.                                                     |
+| `labelType`    | `int`      | The type of label.                                                            |
 
 ---
 ## Example
@@ -108,6 +110,8 @@ Here is an example of how the label looks:
 ![Print label assets](https://github.com/andresperezmelo/niimbot_label_printer/blob/main/file.png)
 
 ![Create label](https://github.com/andresperezmelo/niimbot_label_printer/blob/main/file_custom.png)
+
+![Create label](https://github.com/andresperezmelo/niimbot_label_printer/blob/main/file_2.png)
 
 ---
 ## Created With

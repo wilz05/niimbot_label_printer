@@ -152,6 +152,8 @@ class NiimbotLabelPrinterPlugin : FlutterPlugin, MethodCallHandler {
             val height = (datosImagen["height"] as? Int) ?: 0
             val rotate = (datosImagen["rotate"] as? Boolean) ?: false
             val invertColor = (datosImagen["invertColor"] as? Boolean) ?: false
+            val density = (datosImagen["density"] as? Int) ?: 3
+            val labelType = (datosImagen["labelType"] as? Int) ?: 1
             //println("0. width: $width height: $height")
 
             if (bytes != null && width > 0 && height > 0) {
@@ -171,7 +173,7 @@ class NiimbotLabelPrinterPlugin : FlutterPlugin, MethodCallHandler {
                     // Aquí puedes usar el bitmap para imprimir
                     // Por ejemplo:
                     GlobalScope.launch {
-                        niimbotPrinter.printBitmap(bitmap, rotate = rotate, invertColor = invertColor)
+                        niimbotPrinter.printBitmap(bitmap, density = density, labelType = labelType, rotate = rotate, invertColor = invertColor)
                         result.success(true)
                     }
                 } ?: result.success(false) //println("No hay conexión Bluetooth establecida")
