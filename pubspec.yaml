@@ -39,8 +39,8 @@ flutter:
       android:
         package: com.example.niimbot_label_printer
         pluginClass: NiimbotLabelPrinterPlugin
-        ios:
-          pluginClass: NiimbotLabelPrinterPlugin
+      ios:
+        pluginClass: NiimbotLabelPrinterPlugin
 
       #ios:
         #pluginClass: NiimbotLabelPrinterPlugin
