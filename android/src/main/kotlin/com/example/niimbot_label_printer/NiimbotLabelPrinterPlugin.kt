@@ -1,5 +1,9 @@
 package com.example.niimbot_label_printer
 
+import android.app.Activity
+import androidx.core.app.ActivityCompat
+import io.flutter.embedding.engine.plugins.activity.ActivityAware
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
@@ -10,12 +14,10 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.os.Build
 import android.util.Log
-
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
 import androidx.core.content.ContextCompat
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
@@ -28,7 +30,7 @@ import java.nio.ByteBuffer
 import java.util.UUID
 
 /** NiimbotLabelPrinterPlugin */
-class NiimbotLabelPrinterPlugin : FlutterPlugin, MethodCallHandler {
+class NiimbotLabelPrinterPlugin : FlutterPlugin, MethodCallHandler ,ActivityAware {
     /// The MethodChannel that will the communication between Flutter and native Android
     ///
     /// This local reference serves to register the plugin with the Flutter Engine and unregister it
@@ -47,11 +49,42 @@ class NiimbotLabelPrinterPlugin : FlutterPlugin, MethodCallHandler {
     private var bluetoothSocket: BluetoothSocket? = null
     private lateinit var mac: String
     private lateinit var niimbotPrinter: NiimbotPrinter
+    private var activity: Activity? = null
+    private var activityBinding: ActivityPluginBinding? = null
+    private var pendingResult: Result? = null
+    private val REQUEST_CODE_PERMISSION_BT = 1001
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "niimbot_label_printer")
         channel.setMethodCallHandler(this)
         this.mContext = flutterPluginBinding.applicationContext
+    }
+    override fun onAttachedToActivity(binding: ActivityPluginBinding) {
+        activity = binding.activity
+        activityBinding = binding
+        activityBinding?.addRequestPermissionsResultListener { requestCode, permissions, grantResults ->
+            if (requestCode == REQUEST_CODE_PERMISSION_BT) {
+                val granted = grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED
+                pendingResult?.success(granted)
+                pendingResult = null
+                return@addRequestPermissionsResultListener true
+            }
+            false
+        }
+    }
+
+    override fun onDetachedFromActivityForConfigChanges() {
+        activity = null
+        activityBinding = null
+    }
+
+    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
+        onAttachedToActivity(binding)
+    }
+
+    override fun onDetachedFromActivity() {
+        activity = null
+        activityBinding = null
     }
 
     override fun onMethodCall(call: MethodCall, result: Result) {
@@ -63,17 +96,28 @@ class NiimbotLabelPrinterPlugin : FlutterPlugin, MethodCallHandler {
             Manifest.permission.BLUETOOTH_CONNECT
         ) == PackageManager.PERMISSION_GRANTED
         if (call.method == "ispermissionbluetoothgranted") {
-            var permission: Boolean = true;
-            if (sdkversion >= 31) {
-                permission = permissionGranted;
-            }
-            //solicitar el permiso si no esta consedido
-            if (!permission) {
-                // Solicitar el permiso si no esta consedido
-            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val granted = ContextCompat.checkSelfPermission(
+                    activity!!,
+                    Manifest.permission.BLUETOOTH_CONNECT
+                ) == PackageManager.PERMISSION_GRANTED
 
-            result.success(permission)
-        } else if (!permissionGranted && sdkversion >= 31) {
+                if (!granted) {
+                    ActivityCompat.requestPermissions(
+                        activity!!,
+                        arrayOf(Manifest.permission.BLUETOOTH_CONNECT),
+                        REQUEST_CODE_PERMISSION_BT
+                    )
+                    pendingResult = result // Save result for callback
+                } else {
+                    result.success(true)
+                }
+            } else {
+                result.success(true) // Not required for SDK < 31
+            }
+            return
+        }
+        else if (!permissionGranted && sdkversion >= 31) {
             Log.i(
                 "warning",
                 "Permission bluetooth granted is false, check in settings that the permission of nearby devices is activated"

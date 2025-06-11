@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:ui' as ui;
 import 'dart:ui';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:niimbot_label_printer/niimbot_label_printer.dart';
@@ -76,6 +75,21 @@ class _MyAppState extends State<MyApp> {
               switch (value) {
                 case "permission_is_granted":
                   final bool result = await _niimbotLabelPrinterPlugin.requestPermissionGrant();
+                  if (!result && context.mounted) {
+                    showDialog(
+                      context: context,
+                      builder: (_) => AlertDialog(
+                        title: const Text("Permission Required"),
+                        content: const Text("Bluetooth or location permission is not granted. Please enable it from settings."),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text("OK"),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
                   setState(() {
                     _msj = result ? 'Permission is granted' : 'Permission is not granted';
                   });

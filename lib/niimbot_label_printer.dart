@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 import 'dart:math' as math;
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -26,8 +27,11 @@ class NiimbotLabelPrinter {
     return result ?? false;
   }
 
-  /// Returns bluetooths paired devices
+  /// Returns bluetooth paired devices (stubbed for iOS)
   Future<List<BluetoothDevice>> getPairedDevices() async {
+    if (Platform.isIOS) {
+      return [];
+    }
     final List<Object?>? result = await methodChannel.invokeMethod<List<Object?>?>('getPairedDevices');
     List<BluetoothDevice> devices = [];
     for (Object? o in result!) {
@@ -48,12 +52,22 @@ class NiimbotLabelPrinter {
 
   Future<bool> send(PrintData data) async {
     final bool? result = await methodChannel.invokeMethod<bool>('send', data.toMap());
-    //final bool? result = await methodChannel.invokeMethod<bool>('send', bytes);
     return result ?? false;
   }
 
-  /// Not work:
-  /// ui.Image rotatedImage = await rotateImage(originalImage,90); // 90 grados
+  Future<Map<String, dynamic>?> getRfid() async {
+    final result = await methodChannel.invokeMethod('getRfid');
+    if (result == null) return null;
+    final casted = Map<String, dynamic>.from(result as Map);
+    return casted;
+  }
+
+  Future<Map<String, dynamic>> heartbeat() async {
+    final result = await methodChannel.invokeMethod('heartbeat');
+    final casted = Map<String, dynamic>.from(result as Map);
+    return casted;
+  }
+
   static Future<ui.Image> rotateImage(ui.Image image, double grades) async {
     double angleInRadians = grades * (math.pi / 180);
     final recorder = ui.PictureRecorder();
@@ -65,13 +79,8 @@ class NiimbotLabelPrinter {
     final double halfWidth = image.width / 2;
     final double halfHeight = image.height / 2;
 
-    // Traslada el canvas al centro
     canvas.translate(size.width / 2, size.height / 2);
-
-    // Rota el canvas
     canvas.rotate(angleInRadians);
-
-    // Dibuja la imagen con su centro en el origen
     canvas.drawImage(image, Offset(-halfWidth, -halfHeight), Paint());
 
     final picture = recorder.endRecording();
@@ -140,7 +149,6 @@ class PrintData {
 
   Map<String, dynamic> toMap() {
     List<int> bytes = data;
-    // Trasform bytes to Uint8List if necessary
     if (bytes.runtimeType == Uint8List) {
       bytes = bytes.toList();
     }
