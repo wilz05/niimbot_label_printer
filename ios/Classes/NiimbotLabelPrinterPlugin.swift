@@ -5,17 +5,17 @@ public class NiimbotLabelPrinterPlugin: NSObject, FlutterPlugin {
     var channel: FlutterMethodChannel?
     let manager = JCAPIManager.sharedInstance()
 
-    public static func register(with registrar: FlutterPluginRegistrar) {
-        let channel = FlutterMethodChannel(name: "niimbot_label_printer", binaryMessenger: registrar.messenger())
-        let instance = NiimbotLabelPrinterPlugin()
-        instance.channel = channel
-        registrar.addMethodCallDelegate(instance, channel: channel)
-    }
-
+public static func register(with registrar: FlutterPluginRegistrar) {
+  let channel = FlutterMethodChannel(name: "niimbot_label_printer", binaryMessenger: registrar.messenger())
+  let instance = NiimbotLabelPrinterPlugin()
+  instance.channel = channel
+  registrar.addMethodCallDelegate(instance, channel: channel)
+}
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
 
         case "getPlatformVersion":
+           print("📦 [iOS] getPlatformVersion called")
             result("iOS " + UIDevice.current.systemVersion)
 
         case "connect":
@@ -29,10 +29,30 @@ public class NiimbotLabelPrinterPlugin: NSObject, FlutterPlugin {
                     result(FlutterError(code: "not_connected", message: "No printer found", details: nil))
                 }
             }
+            case "isBluetoothEnabled":
+                // iOS assumes Bluetooth is enabled if CoreBluetooth is available
+                result(true)
 
+            case "getPairedDevices":
+                // iOS does not expose paired list; stub empty array
+                result([])
+        case "disconnect":
+            manager?.disConnectPeripheral()
+            result(true)
         case "isConnected":
             result(manager?.connectedPeripheral != nil)
-
+        case "heartbeat":
+            let status = manager?.getDeviceStatus()
+            let response: [String: Any] = [
+                "closing_state": status?.isCoverOpen ?? false,
+                "power_level": status?.batteryLevel ?? -1,
+                "paper_state": status?.isPaperPresent ?? false,
+                "rfid_read_state": status?.canReadRFID ?? false
+            ]
+            result(response)
+        case "ispermissionbluetoothgranted":
+            // iOS handles permissions via Info.plist and system prompts
+            result(true)
         case "getBatteryLevel":
             let battery = manager?.getDeviceBattery() ?? -1
             result(battery)

@@ -10,8 +10,11 @@ Supports BLE printing, label configuration, battery and paper detection for Niim
   s.author           = { 'Your Name' => 'you@example.com' }
   s.source           = { :path => '.' }
 
+  # Actual plugin Swift/ObjC files
   s.source_files     = 'Classes/**/*.{h,m,swift}'
-  s.public_header_files = 'SDK/Headers/**/*.h'
+  s.public_header_files = 'SDK/Headers/*.h'
+
+  # Vendor SDK static libraries
   s.vendored_libraries = 'SDK/lib/*.a'
 
   s.dependency 'Flutter'
@@ -24,4 +27,7 @@ Supports BLE printing, label configuration, battery and paper detection for Niim
     'OTHER_LDFLAGS' => '-ObjC',
     'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386'
   }
+
+  # Bridge header (required for ObjC <-> Swift if used)
+  s.preserve_paths = 'Classes/NiimbotLabelPrinterPlugin-Bridging-Header.h'
 end

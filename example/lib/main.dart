@@ -66,12 +66,16 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Status: $_msj'),
         actions: [
           PopupMenuButton<String>(
             onSelected: (String value) async {
+              final version = await NiimbotLabelPrinter().getPlatformVersion();
+              print("🎉 iOS version: $version");
               switch (value) {
                 case "permission_is_granted":
                   final bool result = await _niimbotLabelPrinterPlugin.requestPermissionGrant();
