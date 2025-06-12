@@ -1,38 +1,31 @@
+#
+# To learn more about a Podspec see http://guides.cocoapods.org/syntax/podspec.html.
+# Run `pod lib lint niimbot_label_printer.podspec` to validate before publishing.
+#
 Pod::Spec.new do |s|
   s.name             = 'niimbot_label_printer'
   s.version          = '0.0.1'
-  s.summary          = 'Flutter plugin for Niimbot printers'
+  s.summary          = 'A new Flutter plugin project.'
   s.description      = <<-DESC
-Supports BLE printing, label configuration, battery, and RFID detection for Niimbot label printers.
-  DESC
-  s.homepage         = 'https://example.com'
+A new Flutter plugin project.
+                       DESC
+  s.homepage         = 'http://example.com'
   s.license          = { :file => '../LICENSE' }
-  s.author           = { 'Your Name' => 'you@example.com' }
+  s.author           = { 'Your Company' => 'email@example.com' }
   s.source           = { :path => '.' }
-
-  # Main plugin source files
-  s.source_files     = 'Classes/**/*.{h,m,swift}'
-  s.public_header_files = 'SDK/Headers/**/*.h'
-  s.preserve_paths   = ['SDK/Headers/**/*.h', 'Classes/NiimbotLabelPrinterPlugin-Bridging-Header.h']
-
-  # Static libraries from the vendor SDK
-  s.vendored_libraries = 'SDK/lib/*.a'
-
-  # Add system frameworks needed by JCAPI SDK
-  s.frameworks = 'UIKit', 'CoreBluetooth'
-
-  s.libraries = 'z', 'c++'
-
+  s.source_files = 'Classes/**/*'
   s.dependency 'Flutter'
-
   s.platform = :ios, '12.0'
-  s.swift_version = '5.0'
 
-  # Ensure proper linking and compatibility with Swift/ObjC
-  s.pod_target_xcconfig = {
-    'DEFINES_MODULE' => 'YES',
-    'OTHER_LDFLAGS' => '-ObjC',
-    'HEADER_SEARCH_PATHS' => '$(PODS_ROOT)/../SDK/Headers',
-    'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386'
-  }
+  # Flutter.framework does not contain a i386 slice.
+  s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
+  s.swift_version = '5.0'
+  s.vendored_libraries = 'Classes/**/*.a'
+  s.public_header_files = 'Classes/**/*.h'
+  s.libraries  = 'z', 'c++', 'iconv', 'bz2'
+  # If your plugin requires a privacy manifest, for example if it uses any
+  # required reason APIs, update the PrivacyInfo.xcprivacy file to describe your
+  # plugin's privacy impact, and then uncomment this line. For more information,
+  # see https://developer.apple.com/documentation/bundleresources/privacy_manifest_files
+  # s.resource_bundles = {'niimbot_label_printer_privacy' => ['Resources/PrivacyInfo.xcprivacy']}
 end

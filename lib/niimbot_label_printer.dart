@@ -8,7 +8,9 @@ class NiimbotLabelPrinter {
   final MethodChannel methodChannel = const MethodChannel('niimbot_label_printer');
 
   Future<String?> getPlatformVersion() async {
+    print("getPlatformVersion 1");
     final version = await methodChannel.invokeMethod<String>('getPlatformVersion');
+    print("getPlatformVersion 2");
     return version;
   }
 

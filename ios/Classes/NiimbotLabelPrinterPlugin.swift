@@ -2,95 +2,103 @@ import Flutter
 import UIKit
 
 public class NiimbotLabelPrinterPlugin: NSObject, FlutterPlugin {
-    var channel: FlutterMethodChannel?
-    let manager = JCAPIManager.sharedInstance()
+  public static func register(with registrar: FlutterPluginRegistrar) {
+    let channel = FlutterMethodChannel(name: "niimbot_label_printer", binaryMessenger: registrar.messenger())
+    let instance = NiimbotLabelPrinterPlugin()
+    registrar.addMethodCallDelegate(instance, channel: channel)
+  }
 
-public static func register(with registrar: FlutterPluginRegistrar) {
-  let channel = FlutterMethodChannel(name: "niimbot_label_printer", binaryMessenger: registrar.messenger())
-  let instance = NiimbotLabelPrinterPlugin()
-  instance.channel = channel
-  registrar.addMethodCallDelegate(instance, channel: channel)
-}
-    public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        switch call.method {
+  public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+    switch call.method {
 
-        case "getPlatformVersion":
-           print("📦 [iOS] getPlatformVersion called")
-            result("iOS " + UIDevice.current.systemVersion)
+    case "getPlatformVersion":
+      result("iOS " + UIDevice.current.systemVersion)
 
-        case "connect":
-            // SDK usually auto-connects on scan; assume it initializes here
-            manager?.startScan()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                if let device = self.manager?.connectedPeripheral {
-                    print("✅ Connected to printer: \(device.name ?? "")")
-                    result(true)
-                } else {
-                    result(FlutterError(code: "not_connected", message: "No printer found", details: nil))
-                }
-            }
-            case "isBluetoothEnabled":
-                // iOS assumes Bluetooth is enabled if CoreBluetooth is available
-                result(true)
-
-            case "getPairedDevices":
-                // iOS does not expose paired list; stub empty array
-                result([])
-        case "disconnect":
-            manager?.disConnectPeripheral()
-            result(true)
-        case "isConnected":
-            result(manager?.connectedPeripheral != nil)
-        case "heartbeat":
-            let status = manager?.getDeviceStatus()
-            let response: [String: Any] = [
-                "closing_state": status?.isCoverOpen ?? false,
-                "power_level": status?.batteryLevel ?? -1,
-                "paper_state": status?.isPaperPresent ?? false,
-                "rfid_read_state": status?.canReadRFID ?? false
-            ]
-            result(response)
-        case "ispermissionbluetoothgranted":
-            // iOS handles permissions via Info.plist and system prompts
-            result(true)
-        case "getBatteryLevel":
-            let battery = manager?.getDeviceBattery() ?? -1
-            result(battery)
-
-        case "getRfidInfo":
-            if let info = manager?.getRFIDInfo() {
-                let dict: [String: Any] = [
-                    "barcode": info.barcode ?? "",
-                    "serial": info.serial ?? "",
-                    "used_len": info.usedLength,
-                    "total_len": info.totalLength,
-                    "type": info.type
-                ]
-                result(dict)
-            } else {
-                result(FlutterError(code: "no_rfid", message: "RFID not available", details: nil))
-            }
-
-        case "printLabel":
-            guard let args = call.arguments as? [String: Any],
-                  let byteData = args["bytes"] as? FlutterStandardTypedData,
-                  let image = UIImage(data: byteData.data) else {
-                result(FlutterError(code: "invalid_data", message: "Missing or invalid image data", details: nil))
-                return
-            }
-
-            let printConfig = JCPrintConfig()
-            printConfig.density = 3
-            printConfig.labelType = 1
-            printConfig.width = Int32(image.size.width)
-            printConfig.height = Int32(image.size.height)
-
-            manager?.printImage(image, config: printConfig) { success in
-                result(success)
-            }
-
-        default:
-            result(FlutterMethodNotImplemented)
+    case "connect":
+      if let address = call.arguments as? String {
+        JCAPI.openPrinter(address) { success in
+          print("🔌 connect result: \(success)")
+          result(success)
         }
+      } else {
+        result(FlutterError(code: "invalid_args", message: "Missing printer address", details: nil))
+      }
+
+    case "disconnect":
+      print("🛑 disconnect called")
+      JCAPI.closePrinter()
+      print("🛑 disconnect complete")
+      result(true)
+
+    case "isConnected":
+      let connected = JCAPI.isConnectingState() != 0
+      print("🔗 isConnected = \(connected)")
+      result(connected)
+
+    case "isBluetoothEnabled":
+      print("📶 isBluetoothEnabled called (stubbed true)")
+      result(true)
+
+    case "ispermissionbluetoothgranted":
+      print("🔐 ispermissionbluetoothgranted called")
+      result(true)
+
+    case "getPairedDevices":
+      print("📱 getPairedDevices called (iOS cannot list paired devices)")
+      result([])
+
+    case "getRfid":
+      print("📡 getRfid called")
+      result(["rfid": "dummy_value"]) // TODO: implement JCAPI.getRfidInfo
+
+    case "heartbeat":
+      print("💓 heartbeat called")
+      JCAPI.getPrintStatusChange { status in
+        if let statusDict = status as? [String: Any] {
+          result(statusDict)
+        } else {
+          result(["status": "unknown"])
+        }
+      }
+
+    case "send":
+      print("🖨️ send called")
+      guard let args = call.arguments as? [String: Any],
+            let byteData = args["bytes"] as? FlutterStandardTypedData,
+            let image = UIImage(data: byteData.data),
+            let cgImage = image.cgImage,
+            let provider = cgImage.dataProvider,
+            let pixelData = provider.data else {
+        result(FlutterError(code: "invalid_image", message: "Image conversion failed", details: nil))
+        return
+      }
+
+      let width = UInt32(cgImage.width)
+      let height = UInt32(cgImage.height)
+      let rawData = pixelData as Data
+
+      JCAPI.setTotalQuantityOfPrints(1)
+      JCAPI.initDrawingBoard(50, withHeight: 30, withHorizontalShift: 0, withVerticalShift: 0, rotate: 0, fontArray: [])
+
+      JCAPI.drawLableImage(
+        2,
+        withY: 2,
+        withWidth: Float((width / 8)),
+        withHeight: Float((height / 8)),
+        withImageData: rawData.base64EncodedString(),
+        withRotate: 0,
+        withImageProcessingType: 1,
+        withImageProcessingValue: 127
+      )
+
+      let json = JCAPI.generateLableJson() ?? ""
+      JCAPI.commit(json, withOnePageNumbers: 1) { isSuccess in
+        print("🖨️ commit print success: \(isSuccess)")
+        result(isSuccess)
+      }
+
+    default:
+      result(FlutterMethodNotImplemented)
     }
+  }
 }

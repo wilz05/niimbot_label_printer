@@ -6,7 +6,15 @@ import 'package:flutter/services.dart';
 import 'package:niimbot_label_printer/niimbot_label_printer.dart';
 import 'package:niimbot_label_printer_example/custom_canvas_widget.dart';
 
-void main() {
+void main()  async{
+  WidgetsFlutterBinding.ensureInitialized();
+  print("🔥 iOS Plugin NiimbotLabelPrinter setup started ");
+  final printer = NiimbotLabelPrinter();
+  final version = await printer.getPlatformVersion();
+  print("🔥 iOS Plugin Response: $version");
+
+  runApp(MyApp());
+
   runApp(const Apps());
 }
 
